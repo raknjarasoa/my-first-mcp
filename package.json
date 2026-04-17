@@ -1,0 +1,12 @@
+{
+  "name": "my-first-mcp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Njarasoa Rakotozafy",
+  "license": "ISC",
+  "description": ""
+}
