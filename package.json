@@ -4,6 +4,9 @@
   "description": "MCP (Model Context Protocol) server with TypeScript, Express, and Streamable HTTP transport.",
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "my-first-mcp": "dist/index.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/raknjarasoa/my-first-mcp.git"

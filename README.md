@@ -16,42 +16,59 @@ Le serveur expose les tools suivants :
 - Node.js (version 18+)
 - npm
 
-## ⚙️ Installation
+## 🚀 Utilisation simple
 
-1. Cloner le projet ou l'initialiser.
+La méthode la plus simple pour utiliser le serveur dans votre client MCP est de l'exécuter via `npx`. Ajoutez la configuration suivante à votre client (Claude Desktop, Cursor, etc.) :
+
+```json
+{
+  "mcpServers": {
+    "my-first-mcp": {
+      "type": "local",
+      "command": ["npx", "@raknjarasoa/my-first-mcp"]
+    }
+  }
+}
+```
+
+_Alternativement_, vous pouvez installer le paquet globalement en premier :
+
+```bash
+npm install -g @raknjarasoa/my-first-mcp
+```
+
+Puis utiliser `npx my-first-mcp` dans le terminal.
+
+## ⚙️ Développement local
+
+Pour les développements sur le code du serveur, clonez le projet et utilisez la configuration "remote" pour le transport Streamable HTTP.
+
+1. Cloner le projet :
+   ```bash
+   git clone https://github.com/raknjarasoa/my-first-mcp.git
+   cd my-first-mcp
+   ```
 2. Installer les dépendances :
    ```bash
    npm install
    ```
 3. Configurer l'environnement :
    Copier le fichier `.env.example` vers `.env`
+
    ```bash
    cp .env.example .env
    ```
+
    Vous pouvez configurer le port (défaut: 3000) et une clé `API_KEY` si vous souhaitez mettre en place l'authentification (401 géré).
 
-## 🚀 Lancement
+4. Lancer en développement (rechargement à chaud avec `tsx`) :
+   ```bash
+   npm run dev
+   ```
 
-Pour lancer en développement (rechargement à chaud avec `tsx`) :
+### Configuration client pour le développement (Remote)
 
-```bash
-npm run dev
-```
-
-Pour compiler et lancer en production :
-
-```bash
-npm run build
-npm start
-```
-
-## 🛠 Configuration dans les clients MCP
-
-Ce serveur utilise le transport **Streamable HTTP**. Le endpoint unique est `POST /mcp`.
-
-### Claude Desktop / Claude Code / Cursor / RooCode
-
-Configuration avec URL locale Streamable HTTP :
+Pour se connecter au serveur de développement en local (le endpoint unique Streamable HTTP est `POST /mcp`), utilisez la configuration suivante :
 
 ```json
 {
