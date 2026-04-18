@@ -96,3 +96,12 @@ src/
 - **Native `fetch`** : Aucune dépendance HTTP tierce, timeouts intégrés via `AbortController`.
 - **Health check** : `GET /health` pour monitoring et orchestration.
 - **Graceful shutdown** : Fermeture propre de toutes les sessions actives sur `SIGTERM`/`SIGINT`.
+
+## 💡 Exemples de Prompts
+
+Une fois le serveur configuré dans votre client MCP (Claude Desktop, Cursor, RooCode, etc.), voici quelques exemples de requêtes en langage naturel que vous pouvez lui adresser :
+
+- **Addition (`add`)** : "Combien font 12345 et 67890 ?" ou "Utilise l'outil add pour calculer 42 + 84."
+- **Pokémon (`get_pokemon`)** : "Quelles sont les caractéristiques de Pikachu ?" ou "Donne-moi des informations sur le Pokémon Mewtwo."
+- **Météo (`get_weather`)** : "Quelle est la météo actuelle à Paris (latitude 48.85, longitude 2.35) ?" ou "Fait-il beau à Tokyo météo (35.68, 139.69) ?"
+- **Easter egg (`qui_est_l_avenir`)** : "Qui est l'avenir ?" ou "Demande à l'outil qui_est_l_avenir."
