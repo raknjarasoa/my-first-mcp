@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { fetchWithTimeout } from '../utils/fetch.js';
 import type { ToolResult } from '../types.js';
 
-const ArgsSchema = z.object({
+export const inputSchema = {
   latitude: z.coerce
     .number({ message: 'Latitude must be a number.' })
     .min(-90, 'Latitude must be between -90 and 90.')
@@ -12,7 +12,10 @@ const ArgsSchema = z.object({
     .number({ message: 'Longitude must be a number.' })
     .min(-180, 'Longitude must be between -180 and 180.')
     .max(180, 'Longitude must be between -180 and 180.'),
-});
+};
+
+const ArgsSchema = z.object(inputSchema);
+type Args = z.infer<typeof ArgsSchema>;
 
 export const definition: Tool = {
   name: 'get_weather',
@@ -33,7 +36,7 @@ export const definition: Tool = {
   },
 };
 
-export async function handler(args: Record<string, unknown>): Promise<ToolResult> {
+export async function handler(args: Args): Promise<ToolResult> {
   const { latitude, longitude } = ArgsSchema.parse(args);
 
   const url = new URL('https://api.open-meteo.com/v1/forecast');

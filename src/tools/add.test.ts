@@ -38,17 +38,17 @@ describe('add tool', () => {
     });
 
     it('coerces string numbers', async () => {
-      const result = await handler({ a: '10', b: '20' });
+      const result = await handler({ a: '10' as unknown as number, b: '20' as unknown as number });
       expect(result.content[0]!.text).toBe('30');
       expect(result.isError).toBe(false);
     });
 
     it('throws on non-numeric input', async () => {
-      await expect(handler({ a: 'foo', b: 3 })).rejects.toThrow();
+      await expect(handler({ a: 'foo' as unknown as number, b: 3 })).rejects.toThrow();
     });
 
     it('throws on missing parameters', async () => {
-      await expect(handler({})).rejects.toThrow();
+      await expect(handler({} as unknown as { a: number; b: number })).rejects.toThrow();
     });
   });
 });

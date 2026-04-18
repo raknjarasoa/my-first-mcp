@@ -2,10 +2,13 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import type { ToolResult } from '../types.js';
 
-const ArgsSchema = z.object({
+export const inputSchema = {
   a: z.coerce.number({ message: "Parameter 'a' must be a number." }),
   b: z.coerce.number({ message: "Parameter 'b' must be a number." }),
-});
+};
+
+const ArgsSchema = z.object(inputSchema);
+type Args = z.infer<typeof ArgsSchema>;
 
 export const definition: Tool = {
   name: 'add',
@@ -20,7 +23,7 @@ export const definition: Tool = {
   },
 };
 
-export async function handler(args: Record<string, unknown>): Promise<ToolResult> {
+export async function handler(args: Args): Promise<ToolResult> {
   const { a, b } = ArgsSchema.parse(args);
 
   return {

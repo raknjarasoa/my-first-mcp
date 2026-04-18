@@ -92,7 +92,7 @@ describe('get_pokemon tool', () => {
     });
 
     it('throws on missing name', async () => {
-      await expect(handler({})).rejects.toThrow();
+      await expect(handler({} as unknown as { name: string })).rejects.toThrow();
     });
   });
 });

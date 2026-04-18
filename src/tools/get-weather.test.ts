@@ -91,11 +91,15 @@ describe('get_weather tool', () => {
     });
 
     it('throws on non-numeric latitude', async () => {
-      await expect(handler({ latitude: 'not-a-number', longitude: 2.3522 })).rejects.toThrow();
+      await expect(
+        handler({ latitude: 'not-a-number' as unknown as number, longitude: 2.3522 })
+      ).rejects.toThrow();
     });
 
     it('throws on missing parameters', async () => {
-      await expect(handler({})).rejects.toThrow();
+      await expect(
+        handler({} as unknown as { latitude: number; longitude: number })
+      ).rejects.toThrow();
     });
   });
 });

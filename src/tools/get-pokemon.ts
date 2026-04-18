@@ -3,11 +3,14 @@ import { z } from 'zod';
 import { fetchWithTimeout } from '../utils/fetch.js';
 import type { ToolResult } from '../types.js';
 
-const ArgsSchema = z.object({
+export const inputSchema = {
   name: z
     .string({ message: "Parameter 'name' is required." })
     .min(1, 'Pokemon name cannot be empty.'),
-});
+};
+
+const ArgsSchema = z.object(inputSchema);
+type Args = z.infer<typeof ArgsSchema>;
 
 export const definition: Tool = {
   name: 'get_pokemon',
@@ -24,7 +27,7 @@ export const definition: Tool = {
   },
 };
 
-export async function handler(args: Record<string, unknown>): Promise<ToolResult> {
+export async function handler(args: Args): Promise<ToolResult> {
   const { name } = ArgsSchema.parse(args);
   const pokemonName = name.toLowerCase();
 
