@@ -4,6 +4,17 @@
   "description": "MCP (Model Context Protocol) server with TypeScript, Express, and Streamable HTTP transport.",
   "type": "module",
   "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raknjarasoa/my-first-mcp.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
@@ -48,7 +59,10 @@
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.58.2",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.4",
+    "semantic-release": "^24.2.3",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1"
   },
   "lint-staged": {
     "*.{ts,js}": [
