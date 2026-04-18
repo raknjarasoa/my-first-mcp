@@ -1,73 +1,189 @@
 import "dotenv/config";
 import express, { Request, Response, NextFunction } from "express";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
-import { mcpServer } from "./mcp.js";
+import { randomUUID } from "node:crypto";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
+import { createMcpServer } from "./mcp.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.API_KEY;
 
-let transport: SSEServerTransport | null = null;
+// ── Session store ──────────────────────────────────────────────────────────
 
-// Middleware basique pour gérer les erreurs 401 si un API_KEY est configuré dans le .env
-app.use((req: Request, res: Response, next: NextFunction) => {
-  if (API_KEY) {
+const transports: Record<string, StreamableHTTPServerTransport> = {};
+
+// ── Middleware ──────────────────────────────────────────────────────────────
+
+// Parse JSON — required by StreamableHTTPServerTransport
+app.use(express.json());
+
+// Optional Bearer-token auth when API_KEY is set in .env
+if (API_KEY) {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || authHeader !== `Bearer ${API_KEY}`) {
-      res.status(401).json({ error: "Unauthorized - API Key manquante ou invalide." });
+      res.status(401).json({
+        jsonrpc: "2.0",
+        error: { code: -32001, message: "Unauthorized — API Key manquante ou invalide." },
+        id: null,
+      });
       return;
     }
-  }
-  next();
+    next();
+  });
+}
+
+// ── Health check ───────────────────────────────────────────────────────────
+
+app.get("/health", (_req: Request, res: Response) => {
+  res.json({
+    status: "ok",
+    uptime: process.uptime(),
+    activeSessions: Object.keys(transports).length,
+  });
 });
 
-// Endpoint pour initier la connexion SSE
-app.get("/sse", async (req: Request, res: Response) => {
+// ── MCP Streamable HTTP endpoint ──────────────────────────────────────────
+
+// POST /mcp — handles JSON-RPC messages (initialize + all subsequent calls)
+app.post("/mcp", async (req: Request, res: Response) => {
+  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+
   try {
-    // Le transport SSE s'occupe de gérer la réponse
-    transport = new SSEServerTransport("/message", res);
-    await mcpServer.connect(transport);
-    console.log("Client SSE connecté");
+    let transport: StreamableHTTPServerTransport;
 
-    req.on("close", () => {
-      console.log("Client SSE déconnecté");
-      transport = null;
-    });
-  } catch (error) {
-    console.error("Erreur lors de la connexion SSE:", error);
-    res.status(500).json({ error: "Erreur interne du serveur lors de l'initialisation du SSE." });
-  }
-});
+    if (sessionId && transports[sessionId]) {
+      // ── Existing session ──
+      transport = transports[sessionId];
+    } else if (!sessionId && isInitializeRequest(req.body)) {
+      // ── New session (initialization request) ──
+      transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
+        onsessioninitialized: (newSessionId: string) => {
+          console.log(`✅ Session initialisée: ${newSessionId}`);
+          transports[newSessionId] = transport;
+        },
+      });
 
-// Endpoint pour recevoir les messages clients (POST)
-// On parse le body en RAW comme requis par le SDK
-app.post(
-  "/message",
-  express.raw({ type: "*/*", limit: "10mb" }),
-  async (req: Request, res: Response) => {
-    // Gestion de l'erreur 400
-    if (!transport) {
-      res.status(400).json({ error: "Bad Request - Aucune connexion SSE active." });
+      transport.onclose = () => {
+        const sid = transport.sessionId;
+        if (sid && transports[sid]) {
+          console.log(`🔌 Session fermée: ${sid}`);
+          delete transports[sid];
+        }
+      };
+
+      // Each session gets its own MCP server instance
+      const server = createMcpServer();
+      await server.connect(transport);
+      await transport.handleRequest(req, res, req.body);
+      return; // Already handled
+    } else {
+      // ── Invalid request ──
+      res.status(400).json({
+        jsonrpc: "2.0",
+        error: {
+          code: -32000,
+          message: "Bad Request: Session ID invalide ou requête non-initialize.",
+        },
+        id: null,
+      });
       return;
     }
 
-    try {
-      // Confier le traitement du message HTTP au Transport SDK
-      await transport.handlePostMessage(req, res);
-    } catch (error) {
-      console.error("Erreur lors du traitement du message (500):", error);
-      res.status(500).json({ error: "Erreur interne lors du traitement du message." });
+    // Handle request with existing transport
+    await transport.handleRequest(req, res, req.body);
+  } catch (error) {
+    console.error("Erreur lors du traitement de la requête MCP:", error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        jsonrpc: "2.0",
+        error: { code: -32603, message: "Erreur interne du serveur." },
+        id: null,
+      });
     }
   }
-);
+});
 
-// Fallback (404) pour les autres routes
-app.use((req: Request, res: Response) => {
+// GET /mcp — SSE stream for server-initiated notifications
+app.get("/mcp", async (req: Request, res: Response) => {
+  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+
+  if (!sessionId || !transports[sessionId]) {
+    res.status(400).json({
+      jsonrpc: "2.0",
+      error: { code: -32000, message: "Session ID invalide ou manquant." },
+      id: null,
+    });
+    return;
+  }
+
+  const transport = transports[sessionId];
+  await transport.handleRequest(req, res);
+});
+
+// DELETE /mcp — session termination
+app.delete("/mcp", async (req: Request, res: Response) => {
+  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+
+  if (!sessionId || !transports[sessionId]) {
+    res.status(400).json({
+      jsonrpc: "2.0",
+      error: { code: -32000, message: "Session ID invalide ou manquant." },
+      id: null,
+    });
+    return;
+  }
+
+  try {
+    const transport = transports[sessionId];
+    await transport.handleRequest(req, res);
+  } catch (error) {
+    console.error("Erreur lors de la fermeture de session:", error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        jsonrpc: "2.0",
+        error: { code: -32603, message: "Erreur lors de la fermeture de session." },
+        id: null,
+      });
+    }
+  }
+});
+
+// ── Fallback (404) ─────────────────────────────────────────────────────────
+
+app.use((_req: Request, res: Response) => {
   res.status(404).json({ error: "Route non trouvée." });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Serveur MCP Express démarré sur le port ${PORT}`);
-  console.log(`🔗 Endpoint SSE : http://localhost:${PORT}/sse`);
-  console.log(`🔗 Endpoint Messages : http://localhost:${PORT}/message`);
+// ── Start server ───────────────────────────────────────────────────────────
+
+const server = app.listen(PORT, () => {
+  console.log(`🚀 Serveur MCP démarré sur le port ${PORT}`);
+  console.log(`🔗 Endpoint MCP :    http://localhost:${PORT}/mcp`);
+  console.log(`🔗 Health check :    http://localhost:${PORT}/health`);
 });
+
+// ── Graceful shutdown ──────────────────────────────────────────────────────
+
+async function shutdown(signal: string) {
+  console.log(`\n⏳ ${signal} reçu — arrêt en cours…`);
+
+  for (const sessionId of Object.keys(transports)) {
+    try {
+      await transports[sessionId].close();
+      delete transports[sessionId];
+    } catch (error) {
+      console.error(`Erreur à la fermeture de la session ${sessionId}:`, error);
+    }
+  }
+
+  server.close(() => {
+    console.log("👋 Serveur arrêté proprement.");
+    process.exit(0);
+  });
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

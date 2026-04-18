@@ -1,6 +1,6 @@
 # my-first-mcp
 
-Un serveur MCP (Model Context Protocol) moderne construit avec TypeScript, Express et le SDK officiel `@modelcontextprotocol/sdk`. Ce serveur utilise le transport **Streamable HTTP (SSE)** au lieu de STDIO.
+Un serveur MCP (Model Context Protocol) construit avec TypeScript, Express et le SDK officiel `@modelcontextprotocol/sdk`. Ce serveur utilise le transport **Streamable HTTP** (spec 2025-03-26+) avec gestion multi-clients.
 
 ## Outils disponibles
 
@@ -12,7 +12,7 @@ Le serveur expose les tools suivants :
 
 ## Prérequis
 
-- Node.js (version 18+ recommandée)
+- Node.js (version 18+)
 - npm
 
 ## ⚙️ Installation
@@ -44,43 +44,50 @@ npm start
 
 ## 🛠 Configuration dans les clients MCP
 
-Ce serveur utilise le transport SSE. Vous devez configurer votre client pour qu'il se connecte à l'endpoint SSE fourni par Express.
+Ce serveur utilise le transport **Streamable HTTP**. Le endpoint unique est `POST /mcp`.
 
 ### Claude Desktop / Claude Code / Cursor / RooCode
 
-Si votre client supporte la configuration explicite d'un serveur MCP de type `sse` (Streamable HTTP) :
+Configuration avec URL locale Streamable HTTP :
 
 ```json
 {
   "mcpServers": {
     "my-first-mcp": {
-      "command": "node",
-      "args": ["/chemin/absolu/vers/le/projet/dist/index.js"],
-      "env": {
-        "PORT": "3000"
-      }
-    }
-  }
-}
-```
-**Attention** : La plupart des clients (comme Claude Desktop, Cursor et RooCode) s'attendent par défaut à communiquer via `stdio` quand vous fournissez une commande. 
-S'ils supportent l'intégration via une URL locale pour SSE (ce qui est le cas pour des intégrations avancées supportant le binding distant), vous pourrez utiliser :
-
-```json
-{
-  "mcpServers": {
-    "my-first-mcp-sse": {
-      "url": "http://localhost:3000/sse"
+      "url": "http://localhost:3000/mcp"
     }
   }
 }
 ```
 
-*(Note : référez-vous à la documentation spécifique de votre client `opencode`, `roocode`, `vscode` pour la syntaxe exacte de la déclaration HTTP/SSE URL).*
+*(Note : référez-vous à la documentation spécifique de votre client pour la syntaxe exacte. La majorité des clients modernes supportent l'URL Streamable HTTP nativement.)*
+
+## 📁 Architecture du projet
+
+```
+src/
+├── index.ts           # Serveur Express + Streamable HTTP transport
+├── mcp.ts             # Factory MCP Server + registre de tools
+├── tools/
+│   ├── add.ts         # Tool: addition
+│   ├── get-pokemon.ts # Tool: PokeAPI
+│   ├── get-weather.ts # Tool: Open-Meteo
+│   └── qui-est-l-avenir.ts  # Tool: blague
+└── utils/
+    └── fetch.ts       # Fetch wrapper avec timeout
+```
+
+### Ajouter un nouvel outil
+
+1. Créez `src/tools/mon-outil.ts` en exportant `definition` et `handler`.
+2. Importez-le dans `src/mcp.ts` et ajoutez-le au tableau `tools`.
+3. C'est tout — aucun `if/else` à modifier, le registre dynamique gère le dispatch.
 
 ## Architecture & Choix Techniques
 
-- **Express** : Fournit le serveur HTTP robuste et gère le routage et les erreurs (400, 401, 500).
-- **TypeScript** : Typage fort et sécurité.
-- **Corps de la requête (Raw Parser)** : Configuration d'Express pour parser le corps de la requête des POST en brute (`express.raw`) tel que requis par l'implémentation de `SSEServerTransport` du SDK MCP.
-- **Aucun bloatware** : Les dépendances sont minimales (Express, Axios, Dotenv, @modelcontextprotocol/sdk).
+- **Streamable HTTP** : Transport moderne (remplace SSE), gestion multi-clients via sessions.
+- **Express** : Serveur HTTP robuste avec routage et gestion d'erreurs standardisée (JSON-RPC).
+- **TypeScript ESM** : Typage strict et imports modernes (`"type": "module"`).
+- **Native `fetch`** : Aucune dépendance HTTP tierce, timeouts intégrés via `AbortController`.
+- **Health check** : `GET /health` pour monitoring et orchestration.
+- **Graceful shutdown** : Fermeture propre de toutes les sessions actives sur `SIGTERM`/`SIGINT`.

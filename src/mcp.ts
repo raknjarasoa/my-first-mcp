@@ -4,156 +4,76 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
-import axios from "axios";
 
-// Create MCP server
-export const mcpServer = new Server(
-  {
-    name: "my-first-mcp-server",
-    version: "1.0.0",
-  },
-  {
-    capabilities: {
-      tools: {},
-    },
-  }
+// Import all tools
+import * as add from "./tools/add.js";
+import * as getPokemon from "./tools/get-pokemon.js";
+import * as getWeather from "./tools/get-weather.js";
+import * as quiEstLAvenir from "./tools/qui-est-l-avenir.js";
+
+// ── Tool registry ──────────────────────────────────────────────────────────
+// Each tool module exports { definition, handler }.
+// To add a new tool, create a file in src/tools/ and add it to this array.
+
+interface ToolModule {
+  definition: Tool;
+  handler: (
+    args: Record<string, unknown>
+  ) => Promise<{ content: { type: "text"; text: string }[]; isError: boolean }>;
+}
+
+const tools: ToolModule[] = [add, getPokemon, getWeather, quiEstLAvenir];
+
+const toolMap = new Map<string, ToolModule>(
+  tools.map((t) => [t.definition.name, t])
 );
 
-const ADD_TOOL: Tool = {
-  name: "add",
-  description: "Additionne deux nombres a et b",
-  inputSchema: {
-    type: "object",
-    properties: {
-      a: { type: "number", description: "Le premier nombre" },
-      b: { type: "number", description: "Le second nombre" },
-    },
-    required: ["a", "b"],
-  },
-};
+// ── Server factory ─────────────────────────────────────────────────────────
+// Returns a new Server instance per session — required because each
+// StreamableHTTPServerTransport is 1:1 with a Server instance.
 
-const GET_POKEMON_TOOL: Tool = {
-  name: "get_pokemon",
-  description: "Récupère les informations d'un Pokémon via PokeAPI",
-  inputSchema: {
-    type: "object",
-    properties: {
-      name: {
-        type: "string",
-        description: "Le nom du Pokémon (en minuscules, ex: pikachu)",
+export function createMcpServer(): Server {
+  const server = new Server(
+    {
+      name: "my-first-mcp-server",
+      version: "1.0.0",
+    },
+    {
+      capabilities: {
+        tools: {},
       },
-    },
-    required: ["name"],
-  },
-};
+    }
+  );
 
-const GET_WEATHER_TOOL: Tool = {
-  name: "get_weather",
-  description: "Récupère la météo actuelle via Open-Meteo",
-  inputSchema: {
-    type: "object",
-    properties: {
-      latitude: { type: "number", description: "Latitude du lieu (ex: 48.8566 pour Paris)" },
-      longitude: { type: "number", description: "Longitude du lieu (ex: 2.3522 pour Paris)" },
-    },
-    required: ["latitude", "longitude"],
-  },
-};
+  // List all registered tools
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({
+    tools: tools.map((t) => t.definition),
+  }));
 
-const QUI_EST_L_AVENIR_TOOL: Tool = {
-  name: "qui_est_l_avenir",
-  description: "Une petite blague pour ma nouvelle collègue",
-  inputSchema: {
-    type: "object",
-    properties: {},
-  },
-};
+  // Dispatch tool calls
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const { name, arguments: args } = request.params;
+    const tool = toolMap.get(name);
 
-mcpServer.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [ADD_TOOL, GET_POKEMON_TOOL, GET_WEATHER_TOOL, QUI_EST_L_AVENIR_TOOL],
-  };
-});
-
-mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
-
-  try {
-    if (name === "add") {
-      const a = Number(args?.a);
-      const b = Number(args?.b);
-      
-      if (isNaN(a) || isNaN(b)) {
-        throw new Error("Les arguments 'a' et 'b' doivent être des nombres.");
-      }
-
+    if (!tool) {
       return {
-        content: [{ type: "text", text: String(a + b) }],
-        isError: false,
+        content: [{ type: "text", text: `Tool inconnu: ${name}` }],
+        isError: true,
       };
     }
 
-    if (name === "get_pokemon") {
-      const pokemonName = String(args?.name).toLowerCase();
-      const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
-      const data = response.data;
-      
-      const pokemonInfo = `Nom: ${data.name}\nID: ${data.id}\nTaille: ${data.height / 10}m\nPoids: ${data.weight / 10}kg`;
-      
-      return {
-        content: [{ type: "text", text: pokemonInfo }],
-        isError: false,
-      };
-    }
-
-    if (name === "get_weather") {
-      const lat = Number(args?.latitude);
-      const lon = Number(args?.longitude);
-      
-      if (isNaN(lat) || isNaN(lon)) {
-         throw new Error("Latitude et Longitude invalides.");
-      }
-
-      const response = await axios.get(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`
-      );
-      const weather = response.data.current_weather;
-      
-      if (!weather) {
-         throw new Error("Données météorologiques indisponibles pour ces coordonnées.");
-      }
-
-      const weatherInfo = `La température actuelle est de ${weather.temperature}°C avec un vent à ${weather.windspeed} km/h.`;
+    try {
+      return await tool.handler(args ?? {});
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Erreur inconnue";
 
       return {
-        content: [{ type: "text", text: weatherInfo }],
-        isError: false,
+        content: [{ type: "text", text: `Erreur: ${errorMessage}` }],
+        isError: true,
       };
     }
+  });
 
-    if (name === "qui_est_l_avenir") {
-      return {
-        content: [{ type: "text", text: "Marie" }],
-        isError: false,
-      };
-    }
-
-    throw new Error(`Tool inconnu: ${name}`);
-  } catch (error: any) {
-    let errorMessage = "Erreur inconnue";
-    
-    if (axios.isAxiosError(error)) {
-        errorMessage = error.response?.data?.message || error.message;
-        if (error.response?.status === 404 && name === "get_pokemon") {
-            errorMessage = `Pokémon '${args?.name}' introuvable.`;
-        }
-    } else if (error instanceof Error) {
-        errorMessage = error.message;
-    }
-
-    return {
-      content: [{ type: "text", text: `Erreur interne: ${errorMessage}` }],
-      isError: true,
-    };
-  }
-});
+  return server;
+}
