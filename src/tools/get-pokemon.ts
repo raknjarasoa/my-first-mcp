@@ -1,31 +1,30 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { fetchWithTimeout } from '../utils/fetch.js';
+import type { ToolResult } from '../types.js';
 
 const ArgsSchema = z.object({
   name: z
-    .string({ message: "Le paramètre 'name' est requis." })
-    .min(1, 'Le nom du Pokémon ne peut pas être vide.'),
+    .string({ message: "Parameter 'name' is required." })
+    .min(1, 'Pokemon name cannot be empty.'),
 });
 
 export const definition: Tool = {
   name: 'get_pokemon',
-  description: "Récupère les informations d'un Pokémon via PokeAPI",
+  description: 'Retrieves information about a Pokemon via PokeAPI',
   inputSchema: {
     type: 'object',
     properties: {
       name: {
         type: 'string',
-        description: 'Le nom du Pokémon (en minuscules, ex: pikachu)',
+        description: 'The Pokemon name (lowercase, e.g. pikachu)',
       },
     },
     required: ['name'],
   },
 };
 
-export async function handler(
-  args: Record<string, unknown>
-): Promise<{ content: { type: 'text'; text: string }[]; isError: boolean }> {
+export async function handler(args: Record<string, unknown>): Promise<ToolResult> {
   const { name } = ArgsSchema.parse(args);
   const pokemonName = name.toLowerCase();
 
@@ -34,11 +33,11 @@ export async function handler(
   );
 
   if (response.status === 404) {
-    throw new Error(`Pokémon '${pokemonName}' introuvable.`);
+    throw new Error(`Pokemon '${pokemonName}' not found.`);
   }
 
   if (!response.ok) {
-    throw new Error(`PokeAPI a répondu avec le statut ${response.status}`);
+    throw new Error(`PokeAPI responded with status ${response.status}`);
   }
 
   const data = await response.json();
@@ -50,12 +49,12 @@ export async function handler(
     .join(', ');
 
   const pokemonInfo = [
-    `Nom: ${data.name}`,
+    `Name: ${data.name}`,
     `ID: ${data.id}`,
-    `Taille: ${data.height / 10}m`,
-    `Poids: ${data.weight / 10}kg`,
+    `Height: ${data.height / 10}m`,
+    `Weight: ${data.weight / 10}kg`,
     `Types: ${types}`,
-    `Capacités: ${abilities}`,
+    `Abilities: ${abilities}`,
   ].join('\n');
 
   return {

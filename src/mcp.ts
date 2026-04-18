@@ -1,9 +1,10 @@
+import { createRequire } from 'node:module';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-  Tool,
-} from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import type { ToolModule } from './types.js';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json') as { version: string };
 
 // Import all tools
 import * as add from './tools/add.js';
@@ -14,13 +15,6 @@ import * as quiEstLAvenir from './tools/qui-est-l-avenir.js';
 // ── Tool registry ──────────────────────────────────────────────────────────
 // Each tool module exports { definition, handler }.
 // To add a new tool, create a file in src/tools/ and add it to this array.
-
-interface ToolModule {
-  definition: Tool;
-  handler: (
-    args: Record<string, unknown>
-  ) => Promise<{ content: { type: 'text'; text: string }[]; isError: boolean }>;
-}
 
 const tools: ToolModule[] = [add, getPokemon, getWeather, quiEstLAvenir];
 
@@ -34,7 +28,7 @@ export function createMcpServer(): Server {
   const server = new Server(
     {
       name: 'my-first-mcp-server',
-      version: '1.0.0',
+      version,
     },
     {
       capabilities: {
@@ -55,7 +49,7 @@ export function createMcpServer(): Server {
 
     if (!tool) {
       return {
-        content: [{ type: 'text', text: `Tool inconnu: ${name}` }],
+        content: [{ type: 'text', text: `Unknown tool: ${name}` }],
         isError: true,
       };
     }
@@ -63,10 +57,10 @@ export function createMcpServer(): Server {
     try {
       return await tool.handler(args ?? {});
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
       return {
-        content: [{ type: 'text', text: `Erreur: ${errorMessage}` }],
+        content: [{ type: 'text', text: `Error: ${errorMessage}` }],
         isError: true,
       };
     }

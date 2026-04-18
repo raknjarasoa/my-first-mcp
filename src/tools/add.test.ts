@@ -15,31 +15,31 @@ describe('add tool', () => {
   describe('handler', () => {
     it('adds two positive numbers', async () => {
       const result = await handler({ a: 2, b: 3 });
-      expect(result.content[0].text).toBe('5');
+      expect(result.content[0]!.text).toBe('5');
       expect(result.isError).toBe(false);
     });
 
     it('adds negative numbers', async () => {
       const result = await handler({ a: -10, b: 5 });
-      expect(result.content[0].text).toBe('-5');
+      expect(result.content[0]!.text).toBe('-5');
       expect(result.isError).toBe(false);
     });
 
     it('adds decimal numbers', async () => {
       const result = await handler({ a: 1.5, b: 2.5 });
-      expect(result.content[0].text).toBe('4');
+      expect(result.content[0]!.text).toBe('4');
       expect(result.isError).toBe(false);
     });
 
     it('handles zero', async () => {
       const result = await handler({ a: 0, b: 0 });
-      expect(result.content[0].text).toBe('0');
+      expect(result.content[0]!.text).toBe('0');
       expect(result.isError).toBe(false);
     });
 
     it('coerces string numbers', async () => {
       const result = await handler({ a: '10', b: '20' });
-      expect(result.content[0].text).toBe('30');
+      expect(result.content[0]!.text).toBe('30');
       expect(result.isError).toBe(false);
     });
 

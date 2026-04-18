@@ -57,7 +57,9 @@ Configuration avec URL locale Streamable HTTP :
 {
   "mcpServers": {
     "my-first-mcp": {
-      "url": "http://localhost:3000/mcp"
+      "type": "remote",
+      "url": "http://localhost:3000/mcp",
+      "enabled": true
     }
   }
 }

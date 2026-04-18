@@ -22,7 +22,7 @@ export async function fetchWithTimeout(
     });
   } catch (error: unknown) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new Error(`La requête vers ${url} a expiré après ${timeoutMs}ms.`);
+      throw new Error(`Request to ${url} timed out after ${timeoutMs}ms.`, { cause: error });
     }
     throw error;
   } finally {

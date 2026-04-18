@@ -42,12 +42,12 @@ describe('get_pokemon tool', () => {
       const result = await handler({ name: 'pikachu' });
 
       expect(result.isError).toBe(false);
-      expect(result.content[0].text).toContain('Nom: pikachu');
-      expect(result.content[0].text).toContain('ID: 25');
-      expect(result.content[0].text).toContain('Taille: 0.4m');
-      expect(result.content[0].text).toContain('Poids: 6kg');
-      expect(result.content[0].text).toContain('Types: electric');
-      expect(result.content[0].text).toContain('Capacités: static, lightning-rod');
+      expect(result.content[0]!.text).toContain('Name: pikachu');
+      expect(result.content[0]!.text).toContain('ID: 25');
+      expect(result.content[0]!.text).toContain('Height: 0.4m');
+      expect(result.content[0]!.text).toContain('Weight: 6kg');
+      expect(result.content[0]!.text).toContain('Types: electric');
+      expect(result.content[0]!.text).toContain('Abilities: static, lightning-rod');
     });
 
     it('lowercases the pokemon name', async () => {
@@ -75,7 +75,7 @@ describe('get_pokemon tool', () => {
         status: 404,
       } as Response);
 
-      await expect(handler({ name: 'fakemon' })).rejects.toThrow('introuvable');
+      await expect(handler({ name: 'fakemon' })).rejects.toThrow('not found');
     });
 
     it('throws on API error', async () => {

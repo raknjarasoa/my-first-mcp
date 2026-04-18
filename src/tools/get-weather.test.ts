@@ -30,9 +30,9 @@ describe('get_weather tool', () => {
         ok: true,
         status: 200,
         json: async () => ({
-          current_weather: {
-            temperature: 22.5,
-            windspeed: 12.3,
+          current: {
+            temperature_2m: 22.5,
+            wind_speed_10m: 12.3,
           },
         }),
       } as Response);
@@ -40,8 +40,8 @@ describe('get_weather tool', () => {
       const result = await handler({ latitude: 48.8566, longitude: 2.3522 });
 
       expect(result.isError).toBe(false);
-      expect(result.content[0].text).toContain('22.5°C');
-      expect(result.content[0].text).toContain('12.3 km/h');
+      expect(result.content[0]!.text).toContain('22.5°C');
+      expect(result.content[0]!.text).toContain('12.3 km/h');
     });
 
     it('constructs URL with correct query parameters', async () => {
@@ -49,19 +49,19 @@ describe('get_weather tool', () => {
         ok: true,
         status: 200,
         json: async () => ({
-          current_weather: { temperature: 20, windspeed: 5 },
+          current: { temperature_2m: 20, wind_speed_10m: 5 },
         }),
       } as Response);
 
       await handler({ latitude: 48.8566, longitude: 2.3522 });
 
-      const calledUrl = mockFetch.mock.calls[0][0];
+      const calledUrl = mockFetch.mock.calls[0]![0]!;
       expect(calledUrl).toContain('latitude=48.8566');
       expect(calledUrl).toContain('longitude=2.3522');
-      expect(calledUrl).toContain('current_weather=true');
+      expect(calledUrl).toContain('current=temperature_2m');
     });
 
-    it('throws when current_weather is missing', async () => {
+    it('throws when current data is missing', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
         status: 200,
@@ -69,7 +69,7 @@ describe('get_weather tool', () => {
       } as Response);
 
       await expect(handler({ latitude: 48.8566, longitude: 2.3522 })).rejects.toThrow(
-        'indisponibles'
+        'unavailable'
       );
     });
 

@@ -1,61 +1,60 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { fetchWithTimeout } from '../utils/fetch.js';
+import type { ToolResult } from '../types.js';
 
 const ArgsSchema = z.object({
   latitude: z.coerce
-    .number({ message: 'La latitude doit être un nombre.' })
-    .min(-90, 'La latitude doit être entre -90 et 90.')
-    .max(90, 'La latitude doit être entre -90 et 90.'),
+    .number({ message: 'Latitude must be a number.' })
+    .min(-90, 'Latitude must be between -90 and 90.')
+    .max(90, 'Latitude must be between -90 and 90.'),
   longitude: z.coerce
-    .number({ message: 'La longitude doit être un nombre.' })
-    .min(-180, 'La longitude doit être entre -180 et 180.')
-    .max(180, 'La longitude doit être entre -180 et 180.'),
+    .number({ message: 'Longitude must be a number.' })
+    .min(-180, 'Longitude must be between -180 and 180.')
+    .max(180, 'Longitude must be between -180 and 180.'),
 });
 
 export const definition: Tool = {
   name: 'get_weather',
-  description: 'Récupère la météo actuelle via Open-Meteo',
+  description: 'Retrieves current weather via Open-Meteo',
   inputSchema: {
     type: 'object',
     properties: {
       latitude: {
         type: 'number',
-        description: 'Latitude du lieu (ex: 48.8566 pour Paris)',
+        description: 'Location latitude (e.g. 48.8566 for Paris)',
       },
       longitude: {
         type: 'number',
-        description: 'Longitude du lieu (ex: 2.3522 pour Paris)',
+        description: 'Location longitude (e.g. 2.3522 for Paris)',
       },
     },
     required: ['latitude', 'longitude'],
   },
 };
 
-export async function handler(
-  args: Record<string, unknown>
-): Promise<{ content: { type: 'text'; text: string }[]; isError: boolean }> {
+export async function handler(args: Record<string, unknown>): Promise<ToolResult> {
   const { latitude, longitude } = ArgsSchema.parse(args);
 
   const url = new URL('https://api.open-meteo.com/v1/forecast');
   url.searchParams.set('latitude', String(latitude));
   url.searchParams.set('longitude', String(longitude));
-  url.searchParams.set('current_weather', 'true');
+  url.searchParams.set('current', 'temperature_2m,wind_speed_10m');
 
   const response = await fetchWithTimeout(url.toString());
 
   if (!response.ok) {
-    throw new Error(`Open-Meteo a répondu avec le statut ${response.status}`);
+    throw new Error(`Open-Meteo responded with status ${response.status}`);
   }
 
   const data = await response.json();
-  const weather = data.current_weather;
+  const weather = data.current;
 
   if (!weather) {
-    throw new Error('Données météorologiques indisponibles pour ces coordonnées.');
+    throw new Error('Weather data unavailable for these coordinates.');
   }
 
-  const weatherInfo = `La température actuelle est de ${weather.temperature}°C avec un vent à ${weather.windspeed} km/h.`;
+  const weatherInfo = `Current temperature is ${weather.temperature_2m}°C with wind speed ${weather.wind_speed_10m} km/h.`;
 
   return {
     content: [{ type: 'text', text: weatherInfo }],

@@ -49,4 +49,23 @@ describe('fetchWithTimeout', () => {
 
     await expect(fetchWithTimeout('https://bad.url')).rejects.toThrow('fetch failed');
   });
+
+  it('throws with timeout message when request exceeds timeout', async () => {
+    // Mock fetch to reject when the abort signal fires, mirroring native behaviour.
+    vi.spyOn(globalThis, 'fetch').mockImplementation(
+      (_input, init) =>
+        new Promise<Response>((_, reject) => {
+          init?.signal?.addEventListener('abort', () => {
+            reject(new DOMException('The operation was aborted.', 'AbortError'));
+          });
+        })
+    );
+
+    const promise = fetchWithTimeout('https://slow.example.com', {}, 5000);
+    vi.advanceTimersByTime(5001);
+
+    await expect(promise).rejects.toThrow(
+      'Request to https://slow.example.com timed out after 5000ms.'
+    );
+  });
 });
