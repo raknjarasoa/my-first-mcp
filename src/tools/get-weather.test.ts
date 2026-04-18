@@ -40,8 +40,8 @@ describe('get_weather tool', () => {
       const result = await handler({ latitude: 48.8566, longitude: 2.3522 });
 
       expect(result.isError).toBe(false);
-      expect(result.content[0]!.text).toContain('22.5°C');
-      expect(result.content[0]!.text).toContain('12.3 km/h');
+      expect((result.content[0]! as { text: string }).text).toContain('22.5°C');
+      expect((result.content[0]! as { text: string }).text).toContain('12.3 km/h');
     });
 
     it('constructs URL with correct query parameters', async () => {

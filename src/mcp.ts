@@ -4,6 +4,7 @@ import * as add from './tools/add.js';
 import * as getPokemon from './tools/get-pokemon.js';
 import * as getWeather from './tools/get-weather.js';
 import * as quiEstLAvenir from './tools/qui-est-l-avenir.js';
+import * as comparePokemon from './tools/compare-pokemon.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json') as { version: string };
@@ -37,6 +38,12 @@ export function createMcpServer(): McpServer {
     quiEstLAvenir.definition.name,
     { description: quiEstLAvenir.definition.description },
     () => quiEstLAvenir.handler({})
+  );
+
+  server.registerTool(
+    comparePokemon.definition.name,
+    { description: comparePokemon.definition.description, inputSchema: comparePokemon.inputSchema },
+    comparePokemon.handler
   );
 
   return server;
