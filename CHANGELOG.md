@@ -1,3 +1,11 @@
+# [1.3.0](https://github.com/raknjarasoa/my-first-mcp/compare/v1.1.0...v1.3.0) (2026-04-18)
+
+### Features
+
+- extract CLI entry point to cli.ts and update package bin configuration ([bca1166](https://github.com/raknjarasoa/my-first-mcp/commit/bca1166))
+- migrate to McpServer and update tool definitions to use explicit input schemas ([bad43ae](https://github.com/raknjarasoa/my-first-mcp/commit/bad43ae))
+- reorder CLI imports and update the qui-est-l-avenir tool response value ([88e1315](https://github.com/raknjarasoa/my-first-mcp/commit/88e1315))
+
 # [1.1.0](https://github.com/raknjarasoa/my-first-mcp/compare/v1.0.0...v1.1.0) (2026-04-18)
 
 ### Bug Fixes
