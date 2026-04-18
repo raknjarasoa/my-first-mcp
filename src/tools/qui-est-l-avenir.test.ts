@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { definition, handler } from './qui-est-l-avenir.js';
 
 describe('qui_est_l_avenir tool', () => {
@@ -13,15 +13,15 @@ describe('qui_est_l_avenir tool', () => {
   });
 
   describe('handler', () => {
-    it('returns Marie', async () => {
+    it('returns Jin', async () => {
       const result = await handler({});
-      expect(result.content[0]!.text).toBe('Marie');
+      expect(result.content[0]!.text).toBe('Jin');
       expect(result.isError).toBe(false);
     });
 
     it('ignores any provided arguments', async () => {
       const result = await handler({ random: 'arg' });
-      expect(result.content[0]!.text).toBe('Marie');
+      expect(result.content[0]!.text).toBe('Jin');
     });
   });
 });

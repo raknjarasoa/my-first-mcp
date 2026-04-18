@@ -12,7 +12,7 @@ export const definition: Tool = {
 
 export async function handler(_args: Record<string, unknown>): Promise<ToolResult> {
   return {
-    content: [{ type: 'text', text: 'Marie' }],
+    content: [{ type: 'text', text: 'Jin' }],
     isError: false,
   };
 }
