@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import { randomUUID, timingSafeEqual } from 'node:crypto';

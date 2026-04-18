@@ -1,11 +1,11 @@
 {
   "name": "@raknjarasoa/my-first-mcp",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "MCP (Model Context Protocol) server with TypeScript, Express, and Streamable HTTP transport.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "my-first-mcp": "dist/index.js"
+    "my-first-mcp": "dist/cli.js"
   },
   "repository": {
     "type": "git",
