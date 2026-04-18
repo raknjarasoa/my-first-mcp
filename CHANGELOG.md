@@ -1,3 +1,9 @@
+# [1.2.0](https://github.com/raknjarasoa/my-first-mcp/compare/v1.1.0...v1.2.0) (2026-04-18)
+
+### Features
+
+- extract CLI entry point to cli.ts and update package bin configuration ([bca1166](https://github.com/raknjarasoa/my-first-mcp/commit/bca11662b1375cd5253de4c8e678309af65051bd))
+
 # [1.1.0](https://github.com/raknjarasoa/my-first-mcp/compare/v1.0.0...v1.1.0) (2026-04-18)
 
 ### Bug Fixes
