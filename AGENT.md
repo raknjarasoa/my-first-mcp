@@ -1,68 +1,68 @@
 # Agent Context: my-first-mcp
 
-## Description du Projet
+## Project Description
 
-Ce projet est un serveur Model Context Protocol (MCP) construit avec TypeScript et Express. Il utilise l'implémentation officielle `@modelcontextprotocol/sdk` afin de fournir des "Tools" (outils) utilisables par des assistants IA via le transport **Streamable HTTP** (spec 2025-03-26+).
+This project is a Model Context Protocol (MCP) server built with TypeScript and Express. It uses the official `@modelcontextprotocol/sdk` implementation to provide "Tools" usable by AI assistants via the **Streamable HTTP** transport (spec 2025-03-26+).
 
 ## Architecture & Tech Stack
 
-- **Environnement** : Node.js 18+ (via `tsx` en développement, `node` classique avec `tsc` en production).
-- **Langage** : TypeScript au format **ESM pur** (`"type": "module"`). Attention : Toujours utiliser l'extension `.js` lors des imports relatifs (config NodeNext).
-- **Transport** : `StreamableHTTPServerTransport` — endpoint unique `POST /mcp` avec gestion multi-clients par sessions.
-- **Serveur web** : Express.js avec `express.json()` pour le parsing.
-- **Clients visés** : Claude Desktop, Cursor, OpenCode, RooCode (en paramétrant l'URL `http://localhost:3000/mcp`).
-- **Dépendances principales** : `express`, `@modelcontextprotocol/sdk`, `dotenv`.
-- **Pas de dépendance HTTP client** : Utilisation de `fetch` natif (Node 18+) avec `AbortController` pour les timeouts.
+- **Environment**: Node.js 22+ (via `tsx` in development, standard `node` with `tsc` in production).
+- **Language**: TypeScript in **pure ESM** format (`"type": "module"`). Note: Always use the `.js` extension for relative imports (NodeNext config).
+- **Transport**: `StreamableHTTPServerTransport` — single endpoint `POST /mcp` with multi-client session management.
+- **Web server**: Express.js with `express.json()` for parsing.
+- **Target clients**: Claude Desktop, Cursor, OpenCode, RooCode (by configuring the URL `http://localhost:3000/mcp`).
+- **Main dependencies**: `express`, `@modelcontextprotocol/sdk`, `dotenv`.
+- **No HTTP client dependency**: Use of native `fetch` (Node 22+) with `AbortController` for timeouts.
 
-## Structure du Projet
+## Project Structure
 
 ```
 src/
-├── index.ts           # Serveur Express + transport Streamable HTTP + health check + graceful shutdown
-├── mcp.ts             # Factory createMcpServer() + registre de tools (Map-based)
-├── tools/             # Un fichier par tool, chacun exporte { definition, handler }
+├── index.ts           # Express server + Streamable HTTP transport + health check + graceful shutdown
+├── mcp.ts             # Factory createMcpServer() + tool registry (Map-based)
+├── tools/             # One file per tool, each exporting { definition, handler }
 │   ├── add.ts
 │   ├── get-pokemon.ts
 │   ├── get-weather.ts
 │   └── qui-est-l-avenir.ts
 └── utils/
-    └── fetch.ts       # Wrapper fetch avec timeout (AbortController)
+    └── fetch.ts       # fetch wrapper with timeout (AbortController)
 ```
 
-## Outils (Tools) implémentés
+## Implemented Tools
 
-1. `add` : Additionne deux nombres.
-2. `get_pokemon` : Consulte l'API `https://pokeapi.co/api/v2/pokemon/:name`.
-3. `get_weather` : Consulte l'API Open-Meteo pour obtenir la météo locale depuis des coordonnées.
-4. `qui_est_l_avenir` : Une "easter egg" retournant "Marie".
+1. `add`: Adds two numbers.
+2. `get_pokemon`: Queries the `https://pokeapi.co/api/v2/pokemon/:name` API.
+3. `get_weather`: Queries the Open-Meteo API to get local weather from coordinates.
+4. `qui_est_l_avenir`: An "easter egg" returning "Marie".
 
-## Endpoints HTTP
+## HTTP Endpoints
 
-- `POST /mcp` : Endpoint principal — JSON-RPC messages (initialize + tool calls).
-- `GET /mcp` : SSE stream pour notifications serveur → client.
-- `DELETE /mcp` : Terminaison de session.
-- `GET /health` : Health check (status, uptime, nombre de sessions actives).
+- `POST /mcp`: Main endpoint — JSON-RPC messages (initialize + tool calls).
+- `GET /mcp`: SSE stream for server → client notifications.
+- `DELETE /mcp`: Session termination.
+- `GET /health`: Health check (status, uptime, number of active sessions).
 
-## Scripts et Commandes
+## Scripts and Commands
 
-- **`npm run dev`** : Démarre le serveur avec hot-reload (`tsx watch src/index.ts`). Port par défaut: 3000.
-- **`npm run build`** : Nettoie le dossier `dist/` et recompile avec TypeScript.
-- **`npm start`** : Démarre la version de production compilée.
+- **`npm run dev`**: Starts the server with hot-reload (`tsx watch src/index.ts`). Default port: 3000.
+- **`npm run build`**: Cleans the `dist/` folder and recompiles with TypeScript.
+- **`npm start`**: Starts the compiled production version.
 
-## Règles d'Aide pour l'Agent
+## Agent Aid Rules
 
-Lorsque vous modifiez ou assistez l'utilisateur sur ce projet :
+When modifying or assisting the user on this project:
 
-1. **Respecter ESM** : Toujours utiliser l'extension `.js` dans les imports relatifs.
-2. **Ne pas casser le transport MCP** : L'endpoint `/mcp` DOIT utiliser `express.json()` comme middleware global, requis par `StreamableHTTPServerTransport`.
-3. **Maintien du SDK** : Privilégier les méthodes du SDK MCP standard.
-4. **Variables d'environnement** : Ne jamais intégrer en dur de secrets. Utiliser le `.env`.
-5. **Erreurs** : Renvoyer des erreurs au format JSON-RPC standard (`{ jsonrpc: "2.0", error: { code, message }, id }`).
+1. **Respect ESM**: Always use the `.js` extension in relative imports.
+2. **Do not break the MCP transport**: The `/mcp` endpoint MUST use `express.json()` as a global middleware, required by `StreamableHTTPServerTransport`.
+3. **SDK maintenance**: Prefer standard MCP SDK methods.
+4. **Environment variables**: Never hardcode secrets. Use `.env`.
+5. **Errors**: Return errors in the standard JSON-RPC format (`{ jsonrpc: "2.0", error: { code, message }, id }`).
 
-## Exemples d'ajouts de Tool
+## Examples of Adding a Tool
 
-Si l'utilisateur vous demande d'ajouter un nouvel Outil :
+If the user asks you to add a new Tool:
 
-1. Créez un fichier dans `src/tools/` qui exporte `definition` (type `Tool`) et `handler` (fonction async).
-2. Importez-le dans `src/mcp.ts` et ajoutez-le au tableau `tools`.
-3. Le registre dynamique (Map) gère le dispatch automatiquement — aucun `if/else` à modifier.
+1. Create a file in `src/tools/` that exports `definition` (type `Tool`) and `handler` (async function).
+2. Import it into `src/mcp.ts` and add it to the `tools` array.
+3. The dynamic registry (Map) handles the dispatch automatically — no `if/else` to modify.
