@@ -1,5 +1,5 @@
 {
-  "name": "my-first-mcp",
+  "name": "@raknjarasoa/my-first-mcp",
   "version": "1.0.0",
   "description": "MCP (Model Context Protocol) server with TypeScript, Express, and Streamable HTTP transport.",
   "type": "module",
