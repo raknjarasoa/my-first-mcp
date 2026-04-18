@@ -21,10 +21,8 @@ export async function fetchWithTimeout(
       signal: controller.signal,
     });
   } catch (error: unknown) {
-    if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error(
-        `La requête vers ${url} a expiré après ${timeoutMs}ms.`
-      );
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error(`La requête vers ${url} a expiré après ${timeoutMs}ms.`);
     }
     throw error;
   } finally {

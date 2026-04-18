@@ -1,15 +1,15 @@
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   Tool,
-} from "@modelcontextprotocol/sdk/types.js";
+} from '@modelcontextprotocol/sdk/types.js';
 
 // Import all tools
-import * as add from "./tools/add.js";
-import * as getPokemon from "./tools/get-pokemon.js";
-import * as getWeather from "./tools/get-weather.js";
-import * as quiEstLAvenir from "./tools/qui-est-l-avenir.js";
+import * as add from './tools/add.js';
+import * as getPokemon from './tools/get-pokemon.js';
+import * as getWeather from './tools/get-weather.js';
+import * as quiEstLAvenir from './tools/qui-est-l-avenir.js';
 
 // ── Tool registry ──────────────────────────────────────────────────────────
 // Each tool module exports { definition, handler }.
@@ -19,14 +19,12 @@ interface ToolModule {
   definition: Tool;
   handler: (
     args: Record<string, unknown>
-  ) => Promise<{ content: { type: "text"; text: string }[]; isError: boolean }>;
+  ) => Promise<{ content: { type: 'text'; text: string }[]; isError: boolean }>;
 }
 
 const tools: ToolModule[] = [add, getPokemon, getWeather, quiEstLAvenir];
 
-const toolMap = new Map<string, ToolModule>(
-  tools.map((t) => [t.definition.name, t])
-);
+const toolMap = new Map<string, ToolModule>(tools.map((t) => [t.definition.name, t]));
 
 // ── Server factory ─────────────────────────────────────────────────────────
 // Returns a new Server instance per session — required because each
@@ -35,8 +33,8 @@ const toolMap = new Map<string, ToolModule>(
 export function createMcpServer(): Server {
   const server = new Server(
     {
-      name: "my-first-mcp-server",
-      version: "1.0.0",
+      name: 'my-first-mcp-server',
+      version: '1.0.0',
     },
     {
       capabilities: {
@@ -57,7 +55,7 @@ export function createMcpServer(): Server {
 
     if (!tool) {
       return {
-        content: [{ type: "text", text: `Tool inconnu: ${name}` }],
+        content: [{ type: 'text', text: `Tool inconnu: ${name}` }],
         isError: true,
       };
     }
@@ -65,11 +63,10 @@ export function createMcpServer(): Server {
     try {
       return await tool.handler(args ?? {});
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Erreur inconnue";
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
 
       return {
-        content: [{ type: "text", text: `Erreur: ${errorMessage}` }],
+        content: [{ type: 'text', text: `Erreur: ${errorMessage}` }],
         isError: true,
       };
     }

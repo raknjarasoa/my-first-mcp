@@ -5,6 +5,7 @@ Un serveur MCP (Model Context Protocol) construit avec TypeScript, Express et le
 ## Outils disponibles
 
 Le serveur expose les tools suivants :
+
 1. **`add`** : Additionne deux nombres (`a` et `b`).
 2. **`get_pokemon`** : Récupère les informations d'un Pokémon via PokeAPI (paramètre : `name`).
 3. **`get_weather`** : Récupère la météo actuelle via Open-Meteo (paramètres : `latitude` et `longitude`).
@@ -32,11 +33,13 @@ Le serveur expose les tools suivants :
 ## 🚀 Lancement
 
 Pour lancer en développement (rechargement à chaud avec `tsx`) :
+
 ```bash
 npm run dev
 ```
 
 Pour compiler et lancer en production :
+
 ```bash
 npm run build
 npm start
@@ -60,7 +63,7 @@ Configuration avec URL locale Streamable HTTP :
 }
 ```
 
-*(Note : référez-vous à la documentation spécifique de votre client pour la syntaxe exacte. La majorité des clients modernes supportent l'URL Streamable HTTP nativement.)*
+_(Note : référez-vous à la documentation spécifique de votre client pour la syntaxe exacte. La majorité des clients modernes supportent l'URL Streamable HTTP nativement.)_
 
 ## 📁 Architecture du projet
 

@@ -1,31 +1,31 @@
-import { Tool } from "@modelcontextprotocol/sdk/types.js";
-import { z } from "zod";
-import { fetchWithTimeout } from "../utils/fetch.js";
+import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod';
+import { fetchWithTimeout } from '../utils/fetch.js';
 
 const ArgsSchema = z.object({
   name: z
     .string({ message: "Le paramètre 'name' est requis." })
-    .min(1, "Le nom du Pokémon ne peut pas être vide."),
+    .min(1, 'Le nom du Pokémon ne peut pas être vide.'),
 });
 
 export const definition: Tool = {
-  name: "get_pokemon",
+  name: 'get_pokemon',
   description: "Récupère les informations d'un Pokémon via PokeAPI",
   inputSchema: {
-    type: "object",
+    type: 'object',
     properties: {
       name: {
-        type: "string",
-        description: "Le nom du Pokémon (en minuscules, ex: pikachu)",
+        type: 'string',
+        description: 'Le nom du Pokémon (en minuscules, ex: pikachu)',
       },
     },
-    required: ["name"],
+    required: ['name'],
   },
 };
 
 export async function handler(
   args: Record<string, unknown>
-): Promise<{ content: { type: "text"; text: string }[]; isError: boolean }> {
+): Promise<{ content: { type: 'text'; text: string }[]; isError: boolean }> {
   const { name } = ArgsSchema.parse(args);
   const pokemonName = name.toLowerCase();
 
@@ -43,13 +43,11 @@ export async function handler(
 
   const data = await response.json();
 
-  const types = data.types
-    .map((t: { type: { name: string } }) => t.type.name)
-    .join(", ");
+  const types = data.types.map((t: { type: { name: string } }) => t.type.name).join(', ');
 
   const abilities = data.abilities
     .map((a: { ability: { name: string } }) => a.ability.name)
-    .join(", ");
+    .join(', ');
 
   const pokemonInfo = [
     `Nom: ${data.name}`,
@@ -58,10 +56,10 @@ export async function handler(
     `Poids: ${data.weight / 10}kg`,
     `Types: ${types}`,
     `Capacités: ${abilities}`,
-  ].join("\n");
+  ].join('\n');
 
   return {
-    content: [{ type: "text", text: pokemonInfo }],
+    content: [{ type: 'text', text: pokemonInfo }],
     isError: false,
   };
 }

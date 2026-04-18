@@ -1,9 +1,9 @@
-import "dotenv/config";
-import express, { Request, Response, NextFunction } from "express";
-import { randomUUID } from "node:crypto";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
-import { createMcpServer } from "./mcp.js";
+import 'dotenv/config';
+import express, { Request, Response, NextFunction } from 'express';
+import { randomUUID } from 'node:crypto';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import { createMcpServer } from './mcp.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,8 +24,8 @@ if (API_KEY) {
     const authHeader = req.headers.authorization;
     if (!authHeader || authHeader !== `Bearer ${API_KEY}`) {
       res.status(401).json({
-        jsonrpc: "2.0",
-        error: { code: -32001, message: "Unauthorized — API Key manquante ou invalide." },
+        jsonrpc: '2.0',
+        error: { code: -32001, message: 'Unauthorized — API Key manquante ou invalide.' },
         id: null,
       });
       return;
@@ -36,9 +36,9 @@ if (API_KEY) {
 
 // ── Health check ───────────────────────────────────────────────────────────
 
-app.get("/health", (_req: Request, res: Response) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.json({
-    status: "ok",
+    status: 'ok',
     uptime: process.uptime(),
     activeSessions: Object.keys(transports).length,
   });
@@ -47,8 +47,8 @@ app.get("/health", (_req: Request, res: Response) => {
 // ── MCP Streamable HTTP endpoint ──────────────────────────────────────────
 
 // POST /mcp — handles JSON-RPC messages (initialize + all subsequent calls)
-app.post("/mcp", async (req: Request, res: Response) => {
-  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+app.post('/mcp', async (req: Request, res: Response) => {
+  const sessionId = req.headers['mcp-session-id'] as string | undefined;
 
   try {
     let transport: StreamableHTTPServerTransport;
@@ -82,10 +82,10 @@ app.post("/mcp", async (req: Request, res: Response) => {
     } else {
       // ── Invalid request ──
       res.status(400).json({
-        jsonrpc: "2.0",
+        jsonrpc: '2.0',
         error: {
           code: -32000,
-          message: "Bad Request: Session ID invalide ou requête non-initialize.",
+          message: 'Bad Request: Session ID invalide ou requête non-initialize.',
         },
         id: null,
       });
@@ -95,11 +95,11 @@ app.post("/mcp", async (req: Request, res: Response) => {
     // Handle request with existing transport
     await transport.handleRequest(req, res, req.body);
   } catch (error) {
-    console.error("Erreur lors du traitement de la requête MCP:", error);
+    console.error('Erreur lors du traitement de la requête MCP:', error);
     if (!res.headersSent) {
       res.status(500).json({
-        jsonrpc: "2.0",
-        error: { code: -32603, message: "Erreur interne du serveur." },
+        jsonrpc: '2.0',
+        error: { code: -32603, message: 'Erreur interne du serveur.' },
         id: null,
       });
     }
@@ -107,13 +107,13 @@ app.post("/mcp", async (req: Request, res: Response) => {
 });
 
 // GET /mcp — SSE stream for server-initiated notifications
-app.get("/mcp", async (req: Request, res: Response) => {
-  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+app.get('/mcp', async (req: Request, res: Response) => {
+  const sessionId = req.headers['mcp-session-id'] as string | undefined;
 
   if (!sessionId || !transports[sessionId]) {
     res.status(400).json({
-      jsonrpc: "2.0",
-      error: { code: -32000, message: "Session ID invalide ou manquant." },
+      jsonrpc: '2.0',
+      error: { code: -32000, message: 'Session ID invalide ou manquant.' },
       id: null,
     });
     return;
@@ -124,13 +124,13 @@ app.get("/mcp", async (req: Request, res: Response) => {
 });
 
 // DELETE /mcp — session termination
-app.delete("/mcp", async (req: Request, res: Response) => {
-  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+app.delete('/mcp', async (req: Request, res: Response) => {
+  const sessionId = req.headers['mcp-session-id'] as string | undefined;
 
   if (!sessionId || !transports[sessionId]) {
     res.status(400).json({
-      jsonrpc: "2.0",
-      error: { code: -32000, message: "Session ID invalide ou manquant." },
+      jsonrpc: '2.0',
+      error: { code: -32000, message: 'Session ID invalide ou manquant.' },
       id: null,
     });
     return;
@@ -140,11 +140,11 @@ app.delete("/mcp", async (req: Request, res: Response) => {
     const transport = transports[sessionId];
     await transport.handleRequest(req, res);
   } catch (error) {
-    console.error("Erreur lors de la fermeture de session:", error);
+    console.error('Erreur lors de la fermeture de session:', error);
     if (!res.headersSent) {
       res.status(500).json({
-        jsonrpc: "2.0",
-        error: { code: -32603, message: "Erreur lors de la fermeture de session." },
+        jsonrpc: '2.0',
+        error: { code: -32603, message: 'Erreur lors de la fermeture de session.' },
         id: null,
       });
     }
@@ -154,7 +154,7 @@ app.delete("/mcp", async (req: Request, res: Response) => {
 // ── Fallback (404) ─────────────────────────────────────────────────────────
 
 app.use((_req: Request, res: Response) => {
-  res.status(404).json({ error: "Route non trouvée." });
+  res.status(404).json({ error: 'Route non trouvée.' });
 });
 
 // ── Start server ───────────────────────────────────────────────────────────
@@ -180,10 +180,10 @@ async function shutdown(signal: string) {
   }
 
   server.close(() => {
-    console.log("👋 Serveur arrêté proprement.");
+    console.log('👋 Serveur arrêté proprement.');
     process.exit(0);
   });
 }
 
-process.on("SIGTERM", () => shutdown("SIGTERM"));
-process.on("SIGINT", () => shutdown("SIGINT"));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
