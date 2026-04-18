@@ -4,6 +4,14 @@
 
 - extract CLI entry point to cli.ts and update package bin configuration ([bca1166](https://github.com/raknjarasoa/my-first-mcp/commit/bca11662b1375cd5253de4c8e678309af65051bd))
 - migrate to McpServer and update tool definitions to use explicit input schemas ([bad43ae](https://github.com/raknjarasoa/my-first-mcp/commit/bad43ae8021a04e23071d6cd7987877c29bd1b53))
+- reorder CLI imports and update the qui-est-l-avenir tool response value ([88e1315](https://github.com/raknjarasoa/my-first-mcp/commit/88e1315cec4bebbafb6712cd4f2bb19be2550028))
+
+# [1.2.0](https://github.com/raknjarasoa/my-first-mcp/compare/v1.1.0...v1.2.0) (2026-04-18)
+
+### Features
+
+- extract CLI entry point to cli.ts and update package bin configuration ([bca1166](https://github.com/raknjarasoa/my-first-mcp/commit/bca11662b1375cd5253de4c8e678309af65051bd))
+- migrate to McpServer and update tool definitions to use explicit input schemas ([bad43ae](https://github.com/raknjarasoa/my-first-mcp/commit/bad43ae8021a04e23071d6cd7987877c29bd1b53))
 
 # [1.2.0](https://github.com/raknjarasoa/my-first-mcp/compare/v1.1.0...v1.2.0) (2026-04-18)
 
