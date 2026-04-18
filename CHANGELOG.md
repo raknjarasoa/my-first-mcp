@@ -1,3 +1,9 @@
+# [1.4.0](https://github.com/raknjarasoa/my-first-mcp/compare/v1.3.0...v1.4.0) (2026-04-18)
+
+### Features
+
+- add compare_pokemon tool and update ToolResult types to support image content. ([59cf531](https://github.com/raknjarasoa/my-first-mcp/commit/59cf5317514ae6fb4bf60617dd54bba449d3caf1))
+
 # [1.3.0](https://github.com/raknjarasoa/my-first-mcp/compare/v1.1.0...v1.3.0) (2026-04-18)
 
 ### Features
