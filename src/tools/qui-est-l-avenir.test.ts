@@ -13,15 +13,15 @@ describe('qui_est_l_avenir tool', () => {
   });
 
   describe('handler', () => {
-    it('returns Jin', async () => {
+    it('returns Eric', async () => {
       const result = await handler({});
-      expect((result.content[0]! as { text: string }).text).toBe('Jin');
+      expect((result.content[0]! as { text: string }).text).toBe('Eric');
       expect(result.isError).toBe(false);
     });
 
     it('ignores any provided arguments', async () => {
       const result = await handler({ random: 'arg' });
-      expect((result.content[0]! as { text: string }).text).toBe('Jin');
+      expect((result.content[0]! as { text: string }).text).toBe('Eric');
     });
   });
 });
