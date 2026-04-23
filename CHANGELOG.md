@@ -1,3 +1,9 @@
+# [1.5.0](https://github.com/raknjarasoa/my-first-mcp/compare/v1.4.0...v1.5.0) (2026-04-23)
+
+### Features
+
+- update avenir tool to return Eric instead of Jin ([0f3b47a](https://github.com/raknjarasoa/my-first-mcp/commit/0f3b47abdbcf2e0868faeeb6621e7f7d7baf7cc5))
+
 # [1.4.0](https://github.com/raknjarasoa/my-first-mcp/compare/v1.3.0...v1.4.0) (2026-04-18)
 
 ### Features
