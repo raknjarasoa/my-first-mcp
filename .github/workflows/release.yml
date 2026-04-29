@@ -6,10 +6,10 @@ on:
       - main
 
 permissions:
-  contents: write # to be able to publish a GitHub release
-  issues: write # to be able to comment on released issues
-  pull-requests: write # to be able to comment on released pull requests
-  id-token: write # to enable use of OIDC for npm provenance
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
 
 jobs:
   release:
@@ -31,13 +31,13 @@ jobs:
         run: npm ci
 
       - name: Check
-        run: npm run ci:check
+        run: npm run ci:check --workspaces --if-present
 
       - name: Build
-        run: npm run build
+        run: npm run build --workspaces --if-present
 
       - name: Test
-        run: npm run test
+        run: npm run test --workspaces --if-present
 
       - name: Semantic Release
         env:
@@ -45,16 +45,3 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
-
-      - name: Publish to NPM (Native OIDC)
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          PUBLISHED_VERSION=$(npm view "$(node -p "require('./package.json').name")" version 2>/dev/null || echo "not-published")
-          LOCAL_VERSION=$(node -p "require('./package.json').version")
-          if [ "$PUBLISHED_VERSION" != "$LOCAL_VERSION" ]; then
-            echo "Publishing new version: $LOCAL_VERSION"
-            npm publish --provenance --access public
-          else
-            echo "Version $LOCAL_VERSION is already published."
-          fi
