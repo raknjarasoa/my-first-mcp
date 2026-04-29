@@ -25,13 +25,13 @@ jobs:
         run: npm ci
 
       - name: Check Formatting
-        run: npm run format:check || true # Avoid heavy break on simple format
+        run: npm run format:check --workspaces --if-present || true
 
       - name: Lint & Types
-        run: npm run ci:check || true # Let this continue maybe or fail
+        run: npm run ci:check --workspaces --if-present || true
 
       - name: Build
-        run: npm run build
+        run: npm run build --workspaces --if-present
 
       - name: Test
-        run: npm run test
+        run: npm run test --workspaces --if-present
